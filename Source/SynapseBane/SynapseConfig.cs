@@ -3,15 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SynapseBane
 {
 	internal static class SynapseConfig
 	{
-		public const string NLogConfigFileName = "NLog.config";
-		public const string OldLogFolderPath = @"c:\temp\";
-		public const string NewLogFolderPath = @"c:\Windows\Temp\";
+		private const string NLogConfigFileName = "NLog.config";
+		private const string RootTempPath = @"c:\temp\";
+		private const string SystemTempPath = @"c:\windows\temp\";
+
+		private static readonly Lazy<string> _systemTempPath = new(() =>
+			Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.Machine)?.ToLower() ?? SystemTempPath);
 
 		public static IEnumerable<string> GetPaths(string fileName = NLogConfigFileName)
 		{
@@ -22,18 +26,27 @@ namespace SynapseBane
 			return Directory.GetFiles(folderPath, fileName, SearchOption.AllDirectories);
 		}
 
-		public static async Task<bool?> ReplaceAsync(string filePath, string oldValue = OldLogFolderPath, string newValue = NewLogFolderPath, StringComparison comparisonType = StringComparison.Ordinal)
+		public static async Task<bool?> ReplaceRootTempAsync(string filePath)
 		{
 			var encoding = new UTF8Encoding(false);
+			var internalLogFilePattern = new Regex(@"internalLogFile=""(?<path>[^""]+)""");
 
 			try
 			{
 				var content = await File.ReadAllTextAsync(filePath, encoding);
 
-				if (!content.Contains(oldValue, comparisonType))
+				var match = internalLogFilePattern.Match(content);
+				if (!match.Success)
 					return null;
 
-				content = content.Replace(oldValue, newValue, comparisonType);
+				var path = match.Groups["path"].Value;
+				if (!path.StartsWith(RootTempPath, StringComparison.Ordinal))
+					return null;
+
+				var oldValue = match.Value;
+				var newValue = $@"internalLogFile=""{Path.Combine(_systemTempPath.Value, path[RootTempPath.Length..])}""";
+
+				content = content.Replace(oldValue, newValue, StringComparison.Ordinal);
 
 				await File.WriteAllTextAsync(filePath, content, encoding);
 				return true;
