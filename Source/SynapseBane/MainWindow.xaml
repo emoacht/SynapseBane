@@ -6,7 +6,7 @@
 		xmlns:local="clr-namespace:SynapseBane"
 		mc:Ignorable="d"
 		Title="Synapse Bane"
-		Width="700" Height="200" SizeToContent="WidthAndHeight">
+		Width="720" Height="200" SizeToContent="WidthAndHeight" ResizeMode="NoResize">
 	<Window.DataContext>
 		<local:MainWindowViewModel/>
 	</Window.DataContext>
@@ -23,25 +23,44 @@
 					<GridView.ColumnHeaderContainerStyle>
 						<Style TargetType="{x:Type GridViewColumnHeader}">
 							<Setter Property="Margin" Value="2,0"/>
-							<Setter Property="BorderThickness" Value="0"/>
+							<Setter Property="Padding" Value="3"/>
+							<Setter Property="HorizontalContentAlignment" Value="Center"/>
+							<Setter Property="VerticalContentAlignment" Value="Center"/>
 							<Setter Property="Background" Value="LightGray"/>
 							<Setter Property="Foreground" Value="Navy"/>
+							<Setter Property="Template">
+								<Setter.Value>
+									<ControlTemplate TargetType="{x:Type GridViewColumnHeader}">
+										<Border Background="{TemplateBinding Background}"
+												CornerRadius="2">
+											<ContentPresenter Margin="{TemplateBinding Padding}"
+															  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+															  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+										</Border>
+									</ControlTemplate>
+								</Setter.Value>
+							</Setter>
 						</Style>
 					</GridView.ColumnHeaderContainerStyle>
 
-					<GridViewColumn Header="File" Width="600" DisplayMemberBinding="{Binding Path}"/>
-					<GridViewColumn Header="Note" Width="80">
+					<GridViewColumn Header="Config file" Width="600" DisplayMemberBinding="{Binding Path}"/>
+					<GridViewColumn Header="Status" Width="100">
 						<GridViewColumn.CellTemplate>
 							<DataTemplate>
-								<TextBlock Text="{Binding Note}">
+								<TextBlock>
 									<TextBlock.Style>
 										<Style TargetType="{x:Type TextBlock}">
 											<Setter Property="Foreground" Value="Gray"/>
 											<Style.Triggers>
-												<DataTrigger Binding="{Binding Note}" Value="Replaced">
+												<DataTrigger Binding="{Binding Status}" Value="AlreadyReplaced">
+													<Setter Property="Text" Value="Already replaced"/>
+												</DataTrigger>
+												<DataTrigger Binding="{Binding Status}" Value="NewlyReplaced">
+													<Setter Property="Text" Value="Newly replaced"/>
 													<Setter Property="Foreground" Value="DodgerBlue"/>
 												</DataTrigger>
-												<DataTrigger Binding="{Binding Note}" Value="Failed">
+												<DataTrigger Binding="{Binding Status}" Value="Failed">
+													<Setter Property="Text" Value="Failed"/>
 													<Setter Property="Foreground" Value="Firebrick"/>
 												</DataTrigger>
 											</Style.Triggers>
@@ -57,7 +76,13 @@
 
 		<Button Grid.Row="1"
 				Height="30" Margin="8,4,8,8"
-				Content="Replace log file path"
-				Command="{Binding ReplaceCommand}"/>
+				Content="Replace root temp in config files"
+				Command="{Binding ReplaceCommand}">
+			<Button.Resources>
+				<Style TargetType="Border">
+					<Setter Property="CornerRadius" Value="2.4"/>
+				</Style>
+			</Button.Resources>
+		</Button>
 	</StackPanel>
 </Window>

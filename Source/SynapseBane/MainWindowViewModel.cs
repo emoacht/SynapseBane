@@ -31,25 +31,33 @@ namespace SynapseBane
 	{
 		public string Path { get; }
 
-		public string? Note
+		public Status Status
 		{
-			get => _note;
-			private set => SetProperty(ref _note, value);
+			get => _status;
+			private set => SetProperty(ref _status, value);
 		}
-		private string? _note;
+		private Status _status;
 
 		public FileViewModel(string path) => Path = path;
 
 		internal async Task ReplaceAsync()
 		{
-			var success = await SynapseConfig.ReplaceAsync(Path);
+			var success = await SynapseConfig.ReplaceRootTempAsync(Path);
 
-			Note = success switch
+			Status = success switch
 			{
-				true => "Replaced",
-				false => "Failed",
-				_ => "Unfound"
+				null => Status.AlreadyReplaced,
+				true => Status.NewlyReplaced,
+				false => Status.Failed
 			};
 		}
+	}
+
+	public enum Status
+	{
+		Unknown = 0,
+		AlreadyReplaced,
+		NewlyReplaced,
+		Failed
 	}
 }
