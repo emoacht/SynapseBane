@@ -27,16 +27,12 @@ namespace SynapseBane
 		}
 	}
 
-	public class FileViewModel : ObservableObject
+	public partial class FileViewModel : ObservableObject
 	{
 		public string Path { get; }
 
-		public Status Status
-		{
-			get => _status;
-			private set => SetProperty(ref _status, value);
-		}
-		private Status _status;
+		[ObservableProperty]
+		private Status status = Status.Unknown;
 
 		public FileViewModel(string path) => Path = path;
 
